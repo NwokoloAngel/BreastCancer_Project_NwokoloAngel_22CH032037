@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Breast Cancer Prediction</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<div class="container">
+<h1>Breast Cancer Prediction System</h1>
+<form method="POST">
+<!-- Example: using first 5 mean features -->
+<input type="number" step="any" name="radius_mean" placeholder="Radius Mean" required>
+<input type="number" step="any" name="texture_mean" placeholder="Texture Mean" required>
+<input type="number" step="any" name="perimeter_mean" placeholder="Perimeter Mean" required>
+<input type="number" step="any" name="area_mean" placeholder="Area Mean" required>
+<input type="number" step="any" name="smoothness_mean" placeholder="Smoothness Mean" required>
+<button type="submit">Predict</button>
+</form>
+
+
+{% if prediction %}
+<div class="result">Result: {{ prediction }}</div>
+{% endif %}
+</div>
+</body>
+</html>
