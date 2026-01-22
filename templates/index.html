@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Breast Cancer Prediction</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="main-container">
+        <header>
+            <h1>Breast Cancer Diagnostics</h1>
+            <p class="subtitle">AI-Powered Analysis System</p>
+        </header>
+
+        <div class="card">
+            <div class="form-header">
+                <h2>Enter Tumor Measurements</h2>
+                <p>Please input the mean values for the following features.</p>
+            </div>
+
+            <form id="predictionForm">
+                <div class="input-group">
+                    <div class="input-wrapper">
+                        <label for="radius_mean">Mean Radius</label>
+                        <input type="number" step="any" id="radius_mean" name="radius_mean" placeholder="e.g., 14.1" required>
+                    </div>
+                    
+                    <div class="input-wrapper">
+                        <label for="texture_mean">Mean Texture</label>
+                        <input type="number" step="any" id="texture_mean" name="texture_mean" placeholder="e.g., 19.2" required>
+                    </div>
+
+                    <div class="input-wrapper">
+                        <label for="perimeter_mean">Mean Perimeter</label>
+                        <input type="number" step="any" id="perimeter_mean" name="perimeter_mean" placeholder="e.g., 91.9" required>
+                    </div>
+
+                    <div class="input-wrapper">
+                        <label for="area_mean">Mean Area</label>
+                        <input type="number" step="any" id="area_mean" name="area_mean" placeholder="e.g., 654.8" required>
+                    </div>
+
+                    <div class="input-wrapper">
+                        <label for="smoothness_mean">Mean Smoothness</label>
+                        <input type="number" step="any" id="smoothness_mean" name="smoothness_mean" placeholder="e.g., 0.096" required>
+                    </div>
+                </div>
+
+                <button type="submit" id="predictBtn">
+                    <span class="btn-text">Analyze Sample</span>
+                    <div class="loader" id="loader"></div>
+                </button>
+            </form>
+        </div>
+
+        <div id="resultCard" class="card result-card hidden">
+            <h2>Analysis Result</h2>
+            <div id="resultContent" class="result-content">
+                <!-- Result injected here -->
+            </div>
+            <button id="resetBtn" class="secondary-btn">New Analysis</button>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('predictionForm');
+        const resultCard = document.getElementById('resultCard');
+        const resultContent = document.getElementById('resultContent');
+        const loader = document.getElementById('loader');
+        const btnText = document.querySelector('.btn-text');
+        const resetBtn = document.getElementById('resetBtn');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            // UI Loading State
+            document.getElementById('predictBtn').disabled = true;
+            loader.style.display = 'block';
+            btnText.style.opacity = '0';
+
+            const formData = new FormData(form);
+
+            try {
+                const response = await fetch('/predict', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const data = await response.json();
+
+                if (response.ok) {
+                    showResult(data);
+                } else {
+                    showError(data.error || 'An error occurred');
+                }
+            } catch (err) {
+                showError('Network error. Please try again.');
+            } finally {
+                // Reset Loading State
+                document.getElementById('predictBtn').disabled = false;
+                loader.style.display = 'none';
+                btnText.style.opacity = '1';
+            }
+        });
+
+        function showResult(data) {
+            form.parentElement.classList.add('hidden');
+            resultCard.classList.remove('hidden');
+            
+            const isMalignant = data.prediction === 0; // Assuming 0 is Malignant based on backend logic
+            const colorClass = isMalignant ? 'danger' : 'safe';
+            const icon = isMalignant ? '⚠️' : '✅';
+            
+            resultContent.innerHTML = `
+                <div class="prediction-badge ${colorClass}">
+                    <span class="icon">${icon}</span>
+                    <span class="text">${data.result}</span>
+                </div>
+                <p class="disclaimer">Note: This is an AI prediction for educational purposes only. Always consult a medical professional.</p>
+            `;
+        }
+
+        function showError(msg) {
+            alert(msg);
+        }
+
+        resetBtn.addEventListener('click', () => {
+            resultCard.classList.add('hidden');
+            form.parentElement.classList.remove('hidden');
+            form.reset();
+        });
+    </script>
+</body>
+</html>
